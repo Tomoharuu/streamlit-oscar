@@ -18,7 +18,7 @@ def page_3():
 
 
 pages = {
-    "":[st.Page(index, title="Página Principal")],
+    "":[st.Page('homepage.py', title="Página Principal")],
     "Análise Oscar": [
         st.Page("oscar_streamlit.py", title="Passo a Passo"),
         st.Page(page_2, title="Dashboard")
@@ -28,5 +28,6 @@ pages = {
     ],
 }
 
+st.set_page_config(layout="wide")
 pg = st.navigation(pages)
 pg.run()

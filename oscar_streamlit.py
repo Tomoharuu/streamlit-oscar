@@ -73,7 +73,8 @@ st.write("""
 | --- | --- |
 | `Year` | A coluna no arquivo `full_data.csv` não possui uma formatação correta de data para o Pandas, somente indicando a referência de qual evento do Oscar se tratou. |
 | `name` e `film` | O arquivo `full_data.csv` possui mais nomes de indicados e de filmes presentes do que `the_oscar_award.csv`. Isso precisará ser analisado para entender e padronizar as informações entre as duas tabelas. Além disso, há dados vazios nestas colunas em ambas bases de dados. |
-| `note` | Algumas informações de grande revelância para alguns dos conflitos com as colunas `name` e `film` estão descritos nesta coluna. |
+| `name` | As indicações que possuem mais de uma pessoa participando estão quebradas com `,` ou `/` nas tabelas. Em caso de alguma análise baseada em nome, isso precisará ser ajustado. |
+| `note` | Algumas informações que podem ter grande relevância para alguns dos conflitos com as colunas `name` e `film` estão descritos nesta coluna. |
 """)
 
 st.subheader("2. Tratando os dados da planilha", divider="gray")
@@ -82,14 +83,44 @@ st.write("""Vamos começar tentando padronizar os dados das colunas `year` e `fi
 
 Para isso, fazemos:""")
 
-st.code('print("Olá, mundo!")', language="python")
+st.code('''df.dropna(axis=0, subset=["Name", "Film"]).reset_index(drop=True)''')
 
-st.dataframe(df.dropna(axis=0, subset=["Name", "Film"]).reset_index())
-st.dataframe(df2.dropna(axis=0, subset=["name", "film"]).reset_index())
+df_limpo = df.dropna(axis=0, subset=["Name", "Film"]).reset_index(drop=True)
 
-st.write("Verificando as notas...")
-st.dataframe(df[["Year", "Category", "Film", "Name", "Note"]].dropna(subset=["Note", "Film", "Name"]))
-st.dataframe(df2[["year_ceremony", "category", "film", "name"]].dropna(subset=["film", "name"]))
+st.write(f"Verificando o número de linhas/colunas de `df`: `{df_limpo.shape}`")
+st.dataframe(df_limpo)
+
+df2_limpo = df2.dropna(axis=0, subset=["name", "film"]).reset_index(drop=True)
+
+st.write(f"Verificando o número de linhas/colunas de `df2`: `{df2_limpo.shape}`")
+st.dataframe(df2_limpo)
+
+st.write("Podemos perceber que em `df2` há 36 linhas a mais. Vamos investigar aonde ocorrem essas inconsistências:")
+
+st.write("Analisando `df`")
+st.dataframe(df_limpo.value_counts("Year").reset_index().sort_values(by="Year", ascending=True).head())
+
+st.write("Analisando `df2`")
+st.dataframe(df2_limpo.value_counts("year_film").reset_index().sort_values(by="year_film", ascending=True).head())
+
+st.write("Podemos perceber que em 1927 já há uma inconsistência de valores. Vamos averiguar as categorias disponíveis deste ano para as duas tabelas:")
+
+st.table(df_limpo[df_limpo["Year"] == "1927/28"].value_counts("Category"))
+
+st.table(df2_limpo[df2_limpo["year_film"] == 1927].value_counts("category"))
+
+st.write("Podemos perceber que em uma das tabelas há a categoria `SPECIAL AWARD`, e ela é a responsável pela diferença. Portanto, vamos remover todas as instâncias dessa categoria para verificar se há algum valor restante.")
+
+# Removendo as categorias com SPECIAL AWARD de df2
+filtro2 = df2_limpo["category"] != "SPECIAL AWARD"
+df2_limpo = df2_limpo[filtro2]
+
+st.write(f"Total de linhas e colunas: {df2_limpo.shape}")
+st.dataframe(df2_limpo)
+
+st.write("Conferindo novamente quais os valores por ano de `df2`:")
+st.dataframe(df2_limpo.value_counts("year_film").reset_index().sort_values(by="year_film", ascending=True))
+st.dataframe(df_limpo.value_counts("Year").reset_index().sort_values(by="Year", ascending=True))
 
 st.html("""<br><br><br><br><br><br>
 <details>r
