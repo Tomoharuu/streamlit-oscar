@@ -1,6 +1,6 @@
 import pandas as pd
 import streamlit as st
-
+import plotly.express as px
 
 st.header("Análise de Dados | Passo a Passo", divider=True)
 
@@ -34,7 +34,7 @@ st.code("""import pandas as pd
 df = pd.read_csv("full_data.csv", encoding="utf-8", sep="\ t")""", language="python")
 
 
-df = pd.read_csv("full_data.csv", encoding="utf-8", sep='\t')
+df = pd.read_csv("full_data.csv", encoding="utf-8", sep="\t")
 
 st.write(f"Número de linhas e colunas: `{df.shape}`")
 st.dataframe(df, hide_index=True)
@@ -53,7 +53,7 @@ with cent_co:
     st.image("the_oscar_award_onlyoffice.png", caption="Abrindo o arquivo `the_oscar_award.csv` pelo OnlyOffice.")
 
 st.code("""import pandas as pd
-df = pd.read_csv("the_oscar_award.csv", encoding="utf-8", sep=",")""", language="python")
+df2 = pd.read_csv("the_oscar_award.csv", encoding="utf-8", sep=",")""", language="python")
 
 df2 = pd.read_csv("the_oscar_award.csv", encoding="utf-8", sep=',')
 
@@ -169,10 +169,23 @@ st.write("Poderemos agora partir para a análise de dados feita de fato.")
 st.write("")
 
 # Parte 3 - Analisando os dados e levantando gráficos
-st.subheader("3. Tratando os dados da planilha", divider="gray")
-st.write("Texto aqui...")
+st.subheader("3. Analisando os dados", divider="gray")
+
+# Tratando os últimos detalhes de df2
+df2_definitivo = df2.dropna(subset=["name", "film"])
+df2_definitivo = df2_definitivo.query('category not in @c')
+filtro_vencedor = df2_definitivo["winner"] == 1
+df_winner_name = df2_definitivo[filtro_vencedor].value_counts("name").reset_index().sort_values(by="count", ascending=True)
+df_winner_film = df2_definitivo[filtro_vencedor].value_counts("film").reset_index().sort_values(by="count", ascending=True)
+
+fig = px.bar(df_winner_name.tail(11), y='name', x='count', title="Maiores nomes vencedores do Oscar", subtitle="Insira um subtítulo aqui")
+fig.update_layout(xaxis_title=None, yaxis_title=None)
+st.plotly_chart(fig)
 
 
+fig2 = px.bar(df_winner_film.tail(15), y='film', x='count', title="Maiores filmes vencedores do Oscar", subtitle="Lista baseada em...")
+fig2.update_layout(xaxis_title=None, yaxis_title=None)
+st.plotly_chart(fig2)
 
 st.html("""<br><br><br><br><br><br>
 <details>r
